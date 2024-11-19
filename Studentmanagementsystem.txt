@@ -1,0 +1,184 @@
+Student class
+import java.io.Serializable;
+
+public class Student implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private int id;
+    private String name;
+    private int age;
+
+    // Constructor
+    public Student(int id, String name, int age) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+    }
+
+    // Getters and setters
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    @Override
+    public String toString() {
+        return "Student [  \nID=" + id + ", \nName=" + name + ", \nAge=" + age + "  ]";
+    }
+}
+Student Manager class
+import java.io.*;
+import java.util.*;
+
+public class StudentManager {
+    private static final String FILE_NAME = "students.ser";
+    private List<Student> students;
+
+    public StudentManager() {
+        students = loadStudents();
+    }
+
+    // Load students from the serialized file
+    private List<Student> loadStudents() {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_NAME))) {
+            return (List<Student>) ois.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            // If file doesn't exist or error occurs, return an empty list
+            return new ArrayList<>();
+        }
+    }
+
+    // Save students to a serialized file
+    private void saveStudents() {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_NAME))) {
+            oos.writeObject(students);
+        } catch (IOException e) {
+            System.out.println("Error saving students: " + e.getMessage());
+        }
+    }
+
+    // Add a new student
+    public void addStudent(int id, String name, int age) {
+        Student newStudent = new Student(id, name, age);
+        students.add(newStudent);
+        saveStudents();
+        System.out.println("Student added successfully!");
+    }
+
+    // View all students
+    public void viewStudents() {
+        if (students.isEmpty()) {
+            System.out.println("No students available.");
+        } else {
+            for (Student student : students) {
+                System.out.println(student);
+            }
+        }
+    }
+
+    // Delete a student by ID
+    public void deleteStudent(int id) {
+        Student studentToRemove = null;
+        for (Student student : students) {
+            if (student.getId() == id) {
+                studentToRemove = student;
+                break;
+            }
+        }
+
+        if (studentToRemove != null) {
+            students.remove(studentToRemove);
+            saveStudents();
+            System.out.println("Student with ID " + id + " has been deleted.");
+        } else {
+            System.out.println("Student not found with ID: " + id);
+        }
+    }
+}
+Manager class
+import java.util.Scanner;
+
+public class StudentManagerApp {
+    private static final Scanner scanner = new Scanner(System.in);
+    private static final StudentManager manager = new StudentManager();
+
+    public static void main(String[] args) {
+        while (true) {
+            System.out.println("\nStudent Management System");
+            System.out.println("1. Add Student");
+            System.out.println("2. View Students");
+            System.out.println("3. Delete Student");
+            System.out.println("4. Exit");
+            System.out.print("Enter your choice: ");
+            int choice = getIntInput();
+
+            switch (choice) {
+                case 1:
+                    addStudent();
+                    break;
+                case 2:
+                    manager.viewStudents();
+                    break;
+                case 3:
+                    deleteStudent();
+                    break;
+                case 4:
+                    System.out.println("Exiting system.");
+                    return;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    // Helper method to get a valid integer input
+    private static int getIntInput() {
+        while (true) {
+            try {
+                return Integer.parseInt(scanner.nextLine());
+            } catch (NumberFormatException e) {
+                System.out.print("Invalid input. Please enter a valid number: ");
+            }
+        }
+    }
+
+    // Helper method to add a student
+    private static void addStudent() {
+        try {
+            System.out.print("Enter student ID: ");
+            int id = getIntInput();
+            System.out.print("Enter student name: ");
+            String name = scanner.nextLine();
+            System.out.print("Enter student age: ");
+            int age = getIntInput();
+            manager.addStudent(id, name, age);
+        } catch (Exception e) {
+            System.out.println("Error while adding student: " + e.getMessage());
+        }
+    }
+
+    // Helper method to delete a student
+    private static void deleteStudent() {
+        System.out.print("Enter student ID to delete: ");
+        int id = getIntInput();
+        manager.deleteStudent(id);
+    }
+}
